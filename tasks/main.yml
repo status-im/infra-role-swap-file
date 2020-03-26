@@ -1,0 +1,45 @@
+---
+# Since builds can be memory hungry having a SWAP file can save us from a crash
+- name: Check if swap file exists
+  stat:
+    path: '{{ swap_file_path }}'
+    get_checksum: false
+    get_md5: false
+  register: swap_file
+
+- name: Create swap file
+  when: >
+    not swap_file.stat.exists or
+    swap_file.stat.size|int != swap_file_size_bytes|int
+  block:
+    - name: Turn swap off
+      command: swapoff {{ swap_file_path }}
+      when: swap_file.stat.exists
+
+    - name: Allocate swap file
+      command: fallocate -l {{ swap_file_size_mb }}M {{ swap_file_path }}
+    
+    - name: Zero-out swap file
+      command: dd if=/dev/zero of={{ swap_file_path }} bs=1M count={{ swap_file_size_mb }}
+    
+    - name: Format swap file
+      command: mkswap {{ swap_file_path }}
+
+    - name: Fix swap permissions
+      file:
+        path: '{{ swap_file_path }}'
+        mode: 0600
+
+    - name: Turn swap on
+      command: swapon {{ swap_file_path }}
+    
+- name: Add swap file to fstab
+  lineinfile:
+    dest: /etc/fstab
+    regexp: '{{ swap_file_path }}'
+    line: '{{ swap_file_path }} none swap sw 0 0'
+    
+- name: Set swapiness
+  sysctl:
+    name: vm.swappiness
+    value: '{{ swappiness }}'

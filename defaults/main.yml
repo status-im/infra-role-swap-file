@@ -1,5 +1,5 @@
 ---
 swap_file_path: '/main.swap'
 swap_file_size_mb: 4096
-swap_file_size_bytes: '{{ swap_file_size_mb * (2|pow(20)) | int }}'
+swap_file_size_bytes: '{{ (swap_file_size_mb|int) * (2|pow(20)) | int }}'
 swappiness: 10

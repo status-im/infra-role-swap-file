@@ -4,7 +4,6 @@
   stat:
     path: '{{ swap_file_path }}'
     get_checksum: false
-    get_md5: false
   register: swap_file
 
 - name: Create swap file

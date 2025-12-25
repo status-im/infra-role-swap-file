@@ -17,10 +17,10 @@
 
     - name: Allocate swap file
       command: fallocate -l {{ swap_file_size_mb }}M {{ swap_file_path }}
-    
+
     - name: Zero-out swap file
       command: dd if=/dev/zero of={{ swap_file_path }} bs=1M count={{ swap_file_size_mb }}
-    
+
     - name: Format swap file
       command: mkswap {{ swap_file_path }}
 
@@ -31,13 +31,13 @@
 
     - name: Turn swap on
       command: swapon {{ swap_file_path }}
-    
+
 - name: Add swap file to fstab
   lineinfile:
     dest: /etc/fstab
     regexp: '{{ swap_file_path }}'
     line: '{{ swap_file_path }} none swap sw 0 0'
-    
+
 - name: Set swappiness
   sysctl:
     name: vm.swappiness
